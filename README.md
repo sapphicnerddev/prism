@@ -34,5 +34,5 @@ make ARCH=x86_64
 make ARCH=powerpc
 ```
 
-> [!CAUTION
+> [!CAUTION]
 > PowerPC is no longer supported by Limine, we want to keep this a target, so we're looking to find a potential alternative for future PPC builds and testers.
