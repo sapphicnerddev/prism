@@ -6,7 +6,7 @@ This OS is experimental and not stable, functionality across broad swaths of har
 
 ## The Kernel
 
-The Prism kernel (sometimes just called the Kernel or PKernel) is a monolithic, generic C kernel, based heavily off of existing OSdev projects, which I've listed here:
+The Prism kernel (sometimes just called the Kernel or PKernel) is a monolithic, generic C kernel, inspired by existing OSdev projects, which I've listed here:
  - [cavOS by MalwarePad](https://github.com/malwarepad/cavOS)
  - [LemonOS by the LemonOS Project](https://github.com/LemonOSProject/LemonOS)
  - [SerenityOS by Andreas Kling + Many More](https://github.com/SerenityOS/serenity)
