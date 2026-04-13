@@ -60,11 +60,15 @@ endif
 
 ############ Compiler flags ############
 
+# Intentionally quite lengthy, specific and pedantic because this is a kernel.
+# A kernel and OS shouldn't really break, especially in production. So these
+# flags were chosen for the explicit purpose of nuking most bugs from orbit
+# before they even see the CI processes on GitHub.
 CFLAGS_COMMON := \
 	-ffreestanding -fno-stack-protector -fno-pie -fno-pic \
 	-fno-omit-frame-pointer -fno-builtin -fno-common \
 	-nostdinc -std=gnu11 -Wall -Wextra -Wshadow -Wcast-align \
-	-Wpointer-arith -Wwrite-strings -Wreduncant-decls -Wnested-externs \
+	-Wpointer-arith -Wwrite-strings -Wredundant-decls -Wnested-externs \
 	-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations \
 	-Werror=implicit-function-declaration -Werror=return-type \
 	-Werror=implicit-int -Werror=incompatible-pointer-types \
@@ -79,7 +83,7 @@ else ifeq ($(ARCH), x86)
 else ifeq ($(ARCH), riscv64)
 	CFLAGS_ARCH := -mno-relax -march=rv64imac -mabi=lp64
 else ifeq ($(ARCH), powerpc)
-	CFLAGS_ARGS := -mno-altivec -mno-vsx -msoft-float
+	CFLAGS_ARCH := -mno-altivec -mno-vsx -msoft-float
 endif
 
 ############ Sources and automagical source finding ############
@@ -89,3 +93,43 @@ SRCS := $(shell find prism/kernel prism/arch/$(ARCH) prism/drivers \
 ASMS := $(shell find prism/arch/$(ARCH) \
             -name "*.S")
 OBJS := $(SRCS:.c=.o) $(ASMS:.S=.o)
+
+############ Targets ############
+
+KERNEL = prism.elf
+
+all: $(KERNEL)
+
+$(KERNEL): $(OBJS)
+	$(LD) $(LDFLAGS) -T prism/arch/$(ARCH)/linker.ld -o $@ $^
+
+%.o: %.c
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) -Iprism/include -c $< -o $@
+
+%.o: %.S
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) -Iprism/include -c $< -o $@
+
+clean:
+	find prism -name "*.o" -delete
+	rm -f $(KERNEL)
+
+############ Image ISO and running qemu ############
+
+IMAGE = prism.iso
+
+image: $(KERNEL)
+	mkdir -p iso_root/boot/limine
+	cp $(KERNEL) iso_root/boot/
+	cp limine.cfg iso_root/boot/limine/
+	cp limine/limine-bios.sys limine/limine-bios-cd.bin \
+       limine/limine-uefi-cd.bin iso_root/boot/limine/
+	xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
+        -no-emul-boot -boot-load-size 4 \
+        -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin \
+        -efi-boot-part --efi-boot-image --protective-msdos-label \
+        iso_root -o $(IMAGE)
+	./limine/limine bios-install $(IMAGE)
+	rm -rf iso_root
+
+run: image
+	$(QEMU) $(QEMU_FLAGS) -cdrom $(IMAGE)

@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Prism Bootstrap Script:
+# This fetches limine, its binaries and the headers that we're going to use.
+# Nothing fancy, just make sure you run this before trying to build the kernel.
+
+set -e pipefail
+
+LIMINE=limine
+LIMINE_REPO="https://github.com/limine-bootloader/limine.git"
+LIMINE_BRANCH="v8.x-binary"
+
+############ Tool Checks ############
+
+echo "==> Checking for vital tools..."
+
+VITAL_MISSING=0
+
+check_vital() {
+    if ! command -v "$1" &>/dev/null; then
+        echo "[ERROR] Missing vital tool: $1"
+        VITAL_MISSING=1
+    else
+        echo "[ OK  ] $1"
+    fi
+}
+
+check_optional() {
+    if ! command -v "$1" &>/dev/null; then
+        echo "[WARN ] Missing optional tool: $1 (required for ARCH=$2)"
+    else
+        echo "[ OK  ] $1"
+    fi
+}
+
+# Vitals - hard error if missing
+check_vital make
+check_vital git
+check_vital qemu-img
+check_vital xorriso
+
+if [ $VITAL_MISSING -ne 0 ]; then
+    echo ""
+    echo "[ERROR] Vital tools are missing, cannot continue."
+    exit 1
+fi
+
+echo ""
+echo "==> Checking for cross compilers..."
+
+# Optional - warn only
+check_optional aarch64-linux-gnu-gcc         "aarch64"
+check_optional x86_64-linux-gnu-gcc          "x86_64"
+check_optional gcc                           "x86"
+check_optional riscv64-linux-gnu-gcc         "riscv64"
+check_optional powerpc-unknown-linux-gnu-gcc "powerpc"
+
+echo ""
+echo "==> Checking for QEMU targets..."
+
+check_optional qemu-system-aarch64 "aarch64"
+check_optional qemu-system-x86_64  "x86_64"
+check_optional qemu-system-i386    "x86"
+check_optional qemu-system-riscv64 "riscv64"
+check_optional qemu-system-ppc     "powerpc"
+
+############ Limine ############
+
+echo ""
+echo "==> Fetching Limine..."
+
+if [ -d "$LIMINE" ]; then
+    echo "==> Limine already exists, pulling latest..."
+    git -C $LIMINE pull
+else
+    git clone $LIMINE_REPO --branch $LIMINE_BRANCH --depth 1 $LIMINE
+fi
+
+echo ""
+echo "==> Limine fetched successfully!"
+
+make -C $LIMINE
+
+echo ""
+echo "==> Bootstrap complete! You're ready to build Prism! :^)"
