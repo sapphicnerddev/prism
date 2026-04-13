@@ -1,1 +1,0 @@
-/* Linker script for powerpc platforms. */

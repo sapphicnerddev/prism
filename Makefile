@@ -17,6 +17,8 @@
 # standard x86_64 hardware. If not... this Makefile may need edits.
 ARCH ?= aarch64
 
+SRC_ROOT := $(shell pwd)/source
+
 ############ Compiler Selection ############
 
 ifeq ($(ARCH), aarch64)
@@ -75,7 +77,7 @@ CFLAGS_COMMON := \
 
 # Per CPU arch flags -- since registers vary and you know, other stuff
 ifeq ($(ARCH), aarch64)
-	CFLAGS_ARCH := -mno-neon
+	CFLAGS_ARCH := -mgeneral-regs-only
 else ifeq ($(ARCH), x86_64)
 	CFLAGS_ARCH := -mno-sse -mno-sse2 -mno-mmx -mno-3dnow -mno-avx -mno-avx2
 else ifeq ($(ARCH), x86)
@@ -88,11 +90,16 @@ endif
 
 ############ Sources and automagical source finding ############
 
-SRCS := $(shell find prism/kernel prism/arch/$(ARCH) prism/drivers \
+SRCS := $(shell find ./$(SRC_ROOT)/kernel ./$(SRC_ROOT)/arch/$(ARCH) ./$(SRC_ROOT)/drivers \
             -name "*.c")
-ASMS := $(shell find prism/arch/$(ARCH) \
+ASMS := $(shell find ./$(SRC_ROOT)/arch/$(ARCH) \
             -name "*.S")
 OBJS := $(SRCS:.c=.o) $(ASMS:.S=.o)
+
+INCLUDES := \
+    -I/include \
+    -I/arch/$(ARCH)/include \
+    -Ilimine/include
 
 ############ Targets ############
 
@@ -101,16 +108,16 @@ KERNEL = prism.elf
 all: $(KERNEL)
 
 $(KERNEL): $(OBJS)
-	$(LD) $(LDFLAGS) -T prism/arch/$(ARCH)/linker.ld -o $@ $^
+	$(LD) $(LDFLAGS) -T ./$(SRC_ROOT)/arch/$(ARCH)/linker.ld -o $@ $^
 
 %.o: %.c
-	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) -Iprism/include -c $< -o $@
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES) -c $< -o $@
 
 %.o: %.S
-	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) -Iprism/include -c $< -o $@
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_ARCH) $(INCLUDES) -c $< -o $@
 
 clean:
-	find prism -name "*.o" -delete
+	find ./$(SRC_ROOT) -name "*.o" -delete
 	rm -f $(KERNEL)
 
 ############ Image ISO and running qemu ############

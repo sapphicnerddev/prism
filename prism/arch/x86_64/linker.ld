@@ -1,1 +1,0 @@
-/* Linker script for x86_64 platforms. */
