@@ -81,3 +81,11 @@ else ifeq ($(ARCH), riscv64)
 else ifeq ($(ARCH), powerpc)
 	CFLAGS_ARGS := -mno-altivec -mno-vsx -msoft-float
 endif
+
+############ Sources and automagical source finding ############
+
+SRCS := $(shell find prism/kernel prism/arch/$(ARCH) prism/drivers \
+            -name "*.c")
+ASMS := $(shell find prism/arch/$(ARCH) \
+            -name "*.S")
+OBJS := $(SRCS:.c=.o) $(ASMS:.S=.o)

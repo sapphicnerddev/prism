@@ -1,0 +1,1 @@
+/* Linker script for riscv64 platforms. */
