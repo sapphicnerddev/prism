@@ -2,3 +2,12 @@
 [Oo]ut/
 [Bb]in/
 [Bb]uild/
+
+# File types and other stuff we ignore
+*.[oO]
+*.[aA]
+*.so
+
+# Build objects like the ISO and ELF binaries
+prism-*-*.iso
+prism*.elf
