@@ -19,5 +19,20 @@ The design language of this project once again follows Serenity in heart. The en
 
 ## Building
 
-> [!TIP]
-> Unfinished for now.
+**Before you run make, run the bootstrap script!**
+
+The most extensive "configuration" this project has is the `ARCH?=` flag in the Makefile. If you have the right cross compilers, you can specifiy a CPU architecture to compile against. Some examples:
+
+```sh
+# By default, we target aarch64
+make
+
+# x86_64
+make ARCH=x86_64
+
+# PowerPC
+make ARCH=powerpc
+```
+
+> [!CAUTION
+> PowerPC is no longer supported by Limine, we want to keep this a target, so we're looking to find a potential alternative for future PPC builds and testers.
