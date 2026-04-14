@@ -2,6 +2,9 @@
 
 Prism is an experimental, modern POSIX-like operating system built for resource constrained i386, x64, aarch64, riscv64, and PowerPC architectures.
 
+> [!NOTE]
+> The actively maintained and tested targets are **aarch64** (via QEMU) and **x86** (i686, targeting real hardware). Other targets are best-effort and may not compile or boot correctly.
+
 This OS is experimental and not stable, functionality across broad swaths of hardware is not ensured. The project is implemented in C with some portions of the code written in Assembly (which is required to support multiple architectures) where needed. Contributions in languages like Rust or C++ will likely not be accepted into this project at the time.
 
 ## The Kernel
